@@ -47,11 +47,41 @@ function formatRemaining(diff) {
   return "Overdue now!";
 }
 
+const STORAGE_KEY = "hng14-stage0-todos";
+
 function normalizeTags(value) {
   return value
     .split(",")
     .map((tag) => tag.trim())
     .filter(Boolean);
+}
+
+function loadSavedTodos() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function getTodoDataFromCard(card) {
+  const checkbox = card.querySelector("input[type='checkbox']");
+  return {
+    elementId: checkbox.id,
+    title: card.querySelector("[data-testid='test-todo-title']").textContent,
+    description: card.querySelector("[data-testid='test-todo-description']").textContent,
+    priority: card.dataset.priority || card.querySelector("[data-testid='test-todo-priority']").textContent.trim(),
+    status: card.querySelector("[data-testid='test-todo-status']").textContent,
+    dueDate: new Date(card.dataset.due).toISOString(),
+    tags: Array.from(card.querySelectorAll(".tag")).map((tag) => tag.textContent.trim()),
+    done: checkbox.checked,
+  };
+}
+
+function persistTodos() {
+  const cards = Array.from(todoContainer.querySelectorAll(".todo-card"));
+  const todos = cards.map(getTodoDataFromCard);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
 }
 
 function updateCardTime(card) {
@@ -99,6 +129,7 @@ function attachCardEvents(card) {
     const done = checkbox.checked;
     statusLabel.textContent = done ? "Done" : card.dataset.status || "Pending";
     card.classList.toggle("completed", done);
+    persistTodos();
   });
 
   editButton.addEventListener("click", () => {
@@ -126,7 +157,9 @@ function createTodoCard(todo) {
   card.dataset.status = todo.status;
   card.dataset.priority = todo.priority;
   card.dataset.tags = todo.tags.join(", ");
+  card.dataset.done = todo.done ? "true" : "false";
   card.setAttribute("data-testid", "test-todo-card");
+  const statusText = todo.done ? "Done" : todo.status;
   card.innerHTML = `
     <div class="checkbox-group">
       <input type="checkbox" id="${todo.elementId}" data-testid="test-todo-complete-toggle" />
@@ -136,7 +169,7 @@ function createTodoCard(todo) {
     <p data-testid="test-todo-description">${todo.description}</p>
     <div class="row">
       <span class="badge ${todo.priority.toLowerCase()}" data-testid="test-todo-priority">${todo.priority}</span>
-      <span class="status" data-testid="test-todo-status">${todo.status}</span>
+      <span class="status" data-testid="test-todo-status">${statusText}</span>
     </div>
     <div class="time-list">
       <time data-testid="test-todo-due-date" class="due-date" datetime="${todo.dueDate.toISOString()}">Due ${formatDate(todo.dueDate)}</time>
@@ -152,7 +185,36 @@ function createTodoCard(todo) {
   `;
 
   attachCardEvents(card);
+
+  if (todo.done) {
+    const checkbox = card.querySelector("input[type='checkbox']");
+    const statusLabel = card.querySelector(".status");
+    checkbox.checked = true;
+    statusLabel.textContent = "Done";
+    card.classList.add("completed");
+  }
+
   return card;
+}
+
+function renderSavedTodos() {
+  const savedTodos = loadSavedTodos();
+  if (!savedTodos.length) return;
+
+  todoContainer.innerHTML = "";
+  savedTodos.forEach((todo) => {
+    const card = createTodoCard({
+      elementId: todo.elementId || `todo-checkbox-${Date.now()}`,
+      title: todo.title,
+      description: todo.description,
+      priority: todo.priority,
+      status: todo.status || "Pending",
+      dueDate: new Date(todo.dueDate),
+      tags: todo.tags || [],
+      done: todo.done,
+    });
+    todoContainer.appendChild(card);
+  });
 }
 
 function openAddModal() {
@@ -191,6 +253,7 @@ function saveTodo(event) {
     const tagList = activeEditCard.querySelector(".tags");
     tagList.innerHTML = tags.map((tag) => `<li class="tag">${tag}</li>`).join("");
     updateCardTime(activeEditCard);
+    persistTodos();
   } else {
     const todo = {
       elementId: `todo-checkbox-${Date.now()}`,
@@ -200,11 +263,13 @@ function saveTodo(event) {
       status: "Pending",
       dueDate,
       tags,
+      done: false,
     };
 
     const newCard = createTodoCard(todo);
     todoContainer.appendChild(newCard);
     newCard.scrollIntoView({ behavior: "smooth" });
+    persistTodos();
   }
 
   closeModal(todoModal);
@@ -214,6 +279,7 @@ function confirmDelete() {
   if (deleteTarget) {
     deleteTarget.remove();
     deleteTarget = null;
+    persistTodos();
   }
   closeModal(confirmModal);
 }
@@ -246,6 +312,7 @@ closeModalButtons.forEach((button) => {
 });
 window.addEventListener("keydown", handleKeydown);
 
+renderSavedTodos();
 initStaticCard();
 updateAllTimes();
 setInterval(updateAllTimes, 60000);
