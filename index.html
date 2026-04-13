@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Todo Card</title>
+  <link rel="stylesheet" href="./index.css">
+</head>
+
+<body>
+
+<main class="app-shell">
+  <div class="top-bar">
+    <div>
+      <p class="eyebrow">Task manager</p>
+      <h1>Todo Card Collection</h1>
+    </div>
+    <button id="addTodoButton" type="button">Add Todo</button>
+  </div>
+
+  <div id="todoContainer">
+    <article data-testid="test-todo-card" class="todo-card" data-due="2026-04-16T18:00:00Z" data-id="todo-card-1">
+      <div class="checkbox-group">
+        <input
+          type="checkbox"
+          data-testid="test-todo-complete-toggle"
+          id="todoCheckbox"
+        />
+        <label for="todoCheckbox" id="todoCheckboxLabel">
+          Mark as complete
+        </label>
+      </div>
+
+      <h2 data-testid="test-todo-title" id="todoTitle">
+        Finish frontend task
+      </h2>
+
+      <p data-testid="test-todo-description">
+        Build a responsive and accessible todo card component with keyboard support, clear status, and friendly deadline messaging.
+      </p>
+
+      <div class="row">
+        <span
+          class="badge high"
+          data-testid="test-todo-priority"
+          aria-label="High priority"
+        >
+          High
+        </span>
+
+        <span
+          class="status"
+          data-testid="test-todo-status"
+          id="statusText"
+          aria-label="Task status"
+        >
+          Pending
+        </span>
+      </div>
+
+      <div class="time-list">
+        <time
+          data-testid="test-todo-due-date"
+          datetime="2026-04-16T18:00:00Z"
+        >
+          Due Apr 16, 2026
+        </time>
+
+        <time
+          data-testid="test-todo-time-remaining"
+          id="timeRemaining"
+          aria-live="polite"
+          aria-label="Time remaining until due date"
+        >
+          Calculating...
+        </time>
+      </div>
+
+      <ul class="tags" data-testid="test-todo-tags" role="list">
+        <li class="tag" data-testid="test-todo-tag-work">work</li>
+        <li class="tag" data-testid="test-todo-tag-urgent">urgent</li>
+        <li class="tag">frontend</li>
+      </ul>
+
+      <div class="actions">
+        <button
+          class="edit"
+          data-testid="test-todo-edit-button"
+          type="button"
+        >
+          Edit
+        </button>
+
+        <button
+          class="delete"
+          data-testid="test-todo-delete-button"
+          type="button"
+        >
+          Delete
+        </button>
+      </div>
+    </article>
+  </div>
+</main>
+
+<div class="modal-backdrop hidden" id="todoModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div>
+        <p class="eyebrow">Manage todo</p>
+        <h2 id="modalTitle">Add todo</h2>
+      </div>
+      <button class="close-modal" type="button" aria-label="Close modal">✕</button>
+    </div>
+    <form id="todoForm">
+      <label>
+        Title
+        <input type="text" id="todoTitleInput" required />
+      </label>
+      <label>
+        Description
+        <textarea id="todoDescriptionInput" rows="3" required></textarea>
+      </label>
+      <label>
+        Priority
+        <select id="todoPriorityInput">
+          <option>High</option>
+          <option selected>Medium</option>
+          <option>Low</option>
+        </select>
+      </label>
+      <label>
+        Due date
+        <input type="date" id="todoDueInput" required />
+      </label>
+      <label>
+        Tags <span class="muted">comma-separated</span>
+        <input type="text" id="todoTagsInput" placeholder="work, urgent" />
+      </label>
+      <div class="modal-actions">
+        <button type="submit" id="saveTodoButton">Save</button>
+        <button type="button" id="cancelTodoButton">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop hidden" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+  <div class="modal-panel small">
+    <div class="modal-header">
+      <div>
+        <p class="eyebrow">Confirm action</p>
+        <h2 id="confirmTitle">Delete todo</h2>
+      </div>
+      <button class="close-modal" type="button" aria-label="Close modal">✕</button>
+    </div>
+    <p id="confirmMessage">Are you sure you want to remove this todo?</p>
+    <div class="modal-actions">
+      <button type="button" id="confirmDeleteButton">Yes, delete</button>
+      <button type="button" id="cancelDeleteButton">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="./index.js"></script>
+
+</body>
+</html>
